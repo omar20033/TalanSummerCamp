@@ -1,0 +1,33 @@
+genomics, proteomics, transcriptomics, and metabolomics 
+
+Salamandors Regenerate almost everything
+blastema : , a mass of undifferentiated cells that has the capability to develop into an organ or an appendage.
+This blastema if humans have may make them more likely to develop cancer
+Regenerative Medecine
+When we're injured , the injury gets covered with skin tissue 
+
+Several companies and research institutions are actively involved in the field of human regeneration and regenerative medicine. Here are some notable examples:
+
+Organovo: Specializes in 3D bioprinting technology to create human tissues for medical research and therapeutic applications.
+
+Regeneron Pharmaceuticals: Focuses on biopharmaceuticals for treating serious medical conditions, including therapies aimed at regenerating damaged tissues.
+
+United Therapeutics: Works on regenerative medicine solutions, including organ manufacturing and tissue engineering for lung transplantation.
+
+Humacyte: Develops human acellular vessels (HAVs) for vascular repair and replacement, using bioengineered tissues.
+
+Athersys: Focuses on stem cell therapy and regenerative medicine, particularly for neurological and inflammatory conditions.
+
+Bluebird Bio: Specializes in gene therapy and gene editing technologies for treating genetic diseases, some of which involve regenerative approaches.
+
+Celularity: Uses placental-derived cells for therapeutic applications in immuno-oncology and regenerative medicine.
+
+Cellular Dynamics International (a Fujifilm Company): Produces human induced pluripotent stem cells (iPSCs) and differentiated cells for research and therapeutic purposes.
+
+Cynata Therapeutics: Develops mesenchymal stem cell (MSC) therapies for various medical indications, including immune disorders and tissue regeneration.
+
+Osiris Therapeutics: Focuses on stem cell therapies for wound healing, bone regeneration, and inflammatory diseases.
+
+
+
+Available Datasets: Data Sources: Use publicly available datasets from research databases like NCBI, Gene Expression Omnibus (GEO), or Kaggle.
