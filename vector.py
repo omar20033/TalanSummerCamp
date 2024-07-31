@@ -1,4 +1,5 @@
 import os
+import re
 from langchain_nomic.embeddings import NomicEmbeddings
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
@@ -406,7 +407,7 @@ def grade_generation_v_documents_and_question(state):
             print("---DECISION: GENERATION DOES NOT ADDRESS QUESTION---")
             return "not useful"
     else:
-        pprint("---DECISION: GENERATION IS NOT GROUNDED IN DOCUMENTS, RE-TRY---")
+        print("---DECISION: GENERATION IS NOT GROUNDED IN DOCUMENTS, RE-TRY---")
         return "not supported"
 
 

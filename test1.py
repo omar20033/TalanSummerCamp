@@ -19,41 +19,18 @@ from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import GPT4AllEmbeddings, HuggingFaceBgeEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-urls = ["https://phys.org/news/2024-07-globular-cluster-ngc-explored-gemini.html"
-    
-]
 
-# Load documents
-docs = [WebBaseLoader(url).load() for url in urls]
-docs_list = [item for sublist in docs for item in sublist]
 
-# Function to preprocess content
-def preprocess_content(text):
-    # Remove ads, email forms, and other unrelated content
-    text = re.sub(r"[\n\s]+", " ", text)  # Replace multiple spaces/newlines with a single space
-    text = re.sub(r"(?i)(Email|Subscribe|Privacy|Donate|Feedback).*?[\n]", "", text)  # Remove common sections
-    text = re.sub(r"(?i)more information.*", "", text)
-    return text
-
-# Preprocess documents
-for doc in docs_list:
-    doc.page_content = preprocess_content(doc.page_content)
-    
-
-# Initialize text splitter
-text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-    chunk_size=500, chunk_overlap=50
-)
-
-# Split documents into chunks
-doc_splits = text_splitter.split_documents(docs_list)
 local_directory = r"C:\Users\omara\Desktop\Talan\chromaDb"
-# Add to vectorDB
-vectorstore = Chroma.from_documents(
-    documents=doc_splits,
+embedding_model=NomicEmbeddings(model="nomic-embed-text-v1.5", inference_mode="local")
+
+vectorstore = Chroma(
+    persist_directory=local_directory,
     collection_name="rag-chroma",
-    embedding=NomicEmbeddings(model="nomic-embed-text-v1.5", inference_mode="local"),
-    persist_directory=local_directory
+    embedding_function=embedding_model
+    
+    
+    
 )
 retriever = vectorstore.as_retriever()
 
@@ -485,7 +462,7 @@ if __name__ == '__main__':
     # Test
     from pprint import pprint
 
-    inputs = {"question": "why there are so many colorful birds in the tropics and how these colors spread over time ?   "}
+    inputs = {"question": "What are the Ethical Considerations in DNA Research ?  "}
     for output in app.stream(inputs):
         for key, value in output.items():
             pprint(f"Finished running: {key}:")
