@@ -28,6 +28,7 @@ from selenium.webdriver.edge.service import Service as EdgeService, Service
 from selenium.webdriver.edge.options import Options as EdgeOptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+import zipfile
 
 
 # Initialize FastAPI app
@@ -63,7 +64,6 @@ async def rag_ask(request: QueryRequest):
 
         elif api_endpoint == "process_dna":
             response = await process_dna(data)
-            print(response)
             return response
         
         elif api_endpoint == "esm":
@@ -221,6 +221,10 @@ class DNASequence(BaseModel):
 #input JSON: { "sequence" : "AGCTAGCCCCTTT" }
 @api_app.post("/process_dna/")
 async def process_dna(dna: str):
+    download_folder = r'C:\Users\mhame\OneDrive\Bureau\TalanSummerCamp-main\Download'
+    #pdb_file_path = os.path.abspath(os.path.join(download_folder, "result.pdb"))
+    zip_file_path = os.path.abspath(os.path.join(download_folder, "ImageToStl.com_dna1_fixed.zip"))
+    fbx_file_path = os.path.abspath(os.path.join(download_folder, "ImageToStl.com_dna1_fixed.fbx"))
     # Check if the download folder exists, and delete it if it does
     if os.path.exists(DOWNLOAD_PATH):
         shutil.rmtree(DOWNLOAD_PATH)
@@ -333,16 +337,16 @@ async def process_dna(dna: str):
         time.sleep(1)  # Wait for a second to ensure the page has scrolled
 
         # Find the file input element and upload the PDB file
-        file_input = driver.find_element(By.ID, "td")
+        file_input = driver.find_element(By.ID, "ud")
         file_input.send_keys(FILE_PATH)
 
         # Click the "Convert to FBX!" button
-        convert_button = driver.find_element(By.CSS_SELECTOR, "a.m.pq.sd")
+        convert_button = driver.find_element(By.CSS_SELECTOR, "a.m.uq.sd")
         convert_button.click()
 
         # Wait until the download link appears and then click it
         download_link = WebDriverWait(driver, 60).until(
-            EC.element_to_be_clickable((By.ID, "download_single"))
+            EC.element_to_be_clickable((By.ID, "qp"))
         )
         download_link.click()
 
@@ -364,23 +368,41 @@ async def process_dna(dna: str):
         download_link.click()
 
         # Wait for the FBX file to be downloaded
-        time.sleep(15)  # Adjust this according to your needs
+        start_time = time.time()
+        while not os.path.exists(fbx_file_path) and not os.path.exists(zip_file_path) and time.time() - start_time < 60:
+            time.sleep(1)  # Wait for 1 second and check again
 
-        # Find the downloaded FBX file
-        fbx_files = [f for f in os.listdir(DOWNLOAD_PATH) if f.endswith('.fbx')]
-        if not fbx_files:
-            raise HTTPException(status_code=500, detail="FBX file was not downloaded")
-
-        fbx_file_path = os.path.join(DOWNLOAD_PATH, fbx_files[0])
-
-        # Now, encode the file to base64
-        with open(fbx_file_path, "rb") as file:
-            encoded_file = base64.b64encode(file.read()).decode("utf-8")
+        # Check if the ZIP file is downloaded instead of the FBX file
+        if os.path.exists(zip_file_path):
+            # Attempt to extract the ZIP file
+            try:
+                with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+                    zip_ref.extractall(download_folder)
+                # Log the contents of the ZIP file
+                print(f"ZIP file contents: {zip_ref.namelist()}")
+                
+                # Check if the FBX file is now present
+                if os.path.exists(fbx_file_path):
+                    with open(fbx_file_path, "rb") as file:
+                        encoded_file = base64.b64encode(file.read()).decode("utf-8")
+                else:
+                    raise HTTPException(status_code=500, detail="FBX file not found after extracting the ZIP file.")
+            except zipfile.BadZipFile as e:
+                raise HTTPException(status_code=500, detail=f"Error extracting ZIP file: {str(e)}")
+        elif os.path.exists(fbx_file_path):
+            with open(fbx_file_path, "rb") as file:
+                encoded_file = base64.b64encode(file.read()).decode("utf-8")
+        else:
+            # List files in the download directory for debugging
+            files = os.listdir(download_folder)
+            raise HTTPException(status_code=500, detail=f"FBX file not found. Files in download directory: {files}")
+        
 
     finally:
-        # Close the browser
-        driver.quit()
-        
+            # Close the browser
+            time.sleep(6)
+            driver.quit()
+
     # Construct the response
     response = {
         "message": "FBX File encoded successfully",
@@ -389,6 +411,8 @@ async def process_dna(dna: str):
     }
 
     return QueryResponse(question=response["file_content"], generation=response["message"])
+
+        
 
 
 
@@ -400,8 +424,9 @@ class SequenceData(BaseModel):
 @api_app.post("/esm")
 async def fold_sequence(data: str):
     # Define paths
-    download_folder = r"C:\Users\mhame\OneDrive\Bureau\TalanSummerCamp-main\fbx\esmfold\download"
-    pdb_file_path = os.path.abspath(os.path.join(download_folder, "result.pdb" ))
+    download_folder = r'C:\Users\mhame\OneDrive\Bureau\TalanSummerCamp-main\fbx\esmfold\download'
+    pdb_file_path = os.path.abspath(os.path.join(download_folder, "result.pdb"))
+    zip_file_path = os.path.abspath(os.path.join(download_folder, "ImageToStl.com_result.zip"))
     fbx_file_path = os.path.abspath(os.path.join(download_folder, "ImageToStl.com_result.fbx"))
 
     # Ensure the download folder is clean
@@ -456,24 +481,24 @@ async def fold_sequence(data: str):
         driver.execute_script("window.scrollBy(0, 300);")
         time.sleep(1)  # Wait for a second to ensure the page has scrolled
 
-        # Find the file input element and click on it
-        file_input = driver.find_element(By.ID, "td")
-        highlight_element(file_input)  # Highlight the element
-        move_cursor_to_element(file_input)  # Move cursor to the element
-        file_input.send_keys(pdb_file_path)  # Use absolute path
+        # Find the file input element and upload the PDB file
+        file_input = driver.find_element(By.XPATH, "//input[@id='ud']")
+        highlight_element(file_input)
+        move_cursor_to_element(file_input)
+        file_input.send_keys(pdb_file_path)
 
-        # Click the "Convert to FBX!" button
-        convert_button = driver.find_element(By.CSS_SELECTOR, "a.m.pq.sd")
-        highlight_element(convert_button)  # Highlight the button
-        move_cursor_to_element(convert_button)  # Move cursor to the button
+        # Click the "Convert to FBX!" button 
+        convert_button = driver.find_element(By.CSS_SELECTOR, "a.m.uq.sd")
+        highlight_element(convert_button)
+        move_cursor_to_element(convert_button)
         convert_button.click()
 
         # Wait until the download link appears and then click it
         download_link = WebDriverWait(driver, 60).until(
-            EC.element_to_be_clickable((By.ID, "download_single"))
+            EC.element_to_be_clickable((By.ID, "qp"))
         )
-        highlight_element(download_link)  # Highlight the download link
-        move_cursor_to_element(download_link)  # Move cursor to the download link
+        highlight_element(download_link)
+        move_cursor_to_element(download_link)
         download_link.click()
 
         # Handle possible pop-ups or ads
@@ -495,26 +520,41 @@ async def fold_sequence(data: str):
 
         # Wait for the download to complete
         start_time = time.time()
-        while not os.path.exists(fbx_file_path) and time.time() - start_time < 60:
+        while not os.path.exists(fbx_file_path) and not os.path.exists(zip_file_path) and time.time() - start_time < 60:
             time.sleep(1)  # Wait for 1 second and check again
 
-        # Check if the FBX file is downloaded
-        if os.path.exists(fbx_file_path):
-            # Encode the FBX file to base64
+        # Check if the ZIP file is downloaded instead of the FBX file
+        if os.path.exists(zip_file_path):
+            # Attempt to extract the ZIP file
+            try:
+                with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+                    zip_ref.extractall(download_folder)
+                # Log the contents of the ZIP file
+                print(f"ZIP file contents: {zip_ref.namelist()}")
+                
+                # Check if the FBX file is now present
+                if os.path.exists(fbx_file_path):
+                    with open(fbx_file_path, "rb") as file:
+                        encoded_file = base64.b64encode(file.read()).decode("utf-8")
+                else:
+                    raise HTTPException(status_code=500, detail="FBX file not found after extracting the ZIP file.")
+            except zipfile.BadZipFile as e:
+                raise HTTPException(status_code=500, detail=f"Error extracting ZIP file: {str(e)}")
+        elif os.path.exists(fbx_file_path):
             with open(fbx_file_path, "rb") as file:
                 encoded_file = base64.b64encode(file.read()).decode("utf-8")
-
-            response = {
-                "message": "FBX File encoded successfully",
-                "file_content": encoded_file,
-                "file_name": "ImageToStl.com_result.fbx"
-            }
-
-            return QueryResponse(question=response["file_content"], generation=response["message"])
         else:
             # List files in the download directory for debugging
             files = os.listdir(download_folder)
             raise HTTPException(status_code=500, detail=f"FBX file not found. Files in download directory: {files}")
+
+        response = {
+            "message": "FBX File encoded successfully",
+            "file_content": encoded_file,
+            "file_name": "ImageToStl.com_result.fbx"
+        }
+
+        return QueryResponse(question=response["file_content"], generation=response["message"])
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Conversion or download error: {str(e)}")
@@ -523,7 +563,6 @@ async def fold_sequence(data: str):
         # Close the browser
         time.sleep(6)
         driver.quit()
-        
     
 
     
@@ -532,4 +571,4 @@ async def fold_sequence(data: str):
 # Main function to run the server
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(api_app, host="0.0.0.0", port=8000)
+    uvicorn.run(api_app, host="localhost", port=8000)
